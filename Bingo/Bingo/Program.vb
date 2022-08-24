@@ -1,7 +1,6 @@
 ﻿Imports System
 
 Module Program
-
     Dim nbCards As Integer
     Dim CardList As New List(Of Card)
     Public mode As String
@@ -13,14 +12,12 @@ Module Program
     Dim continuer As Boolean = False
     Dim valide As Boolean
     Dim reponseUser As Char
-    Class Boule
+    Public Class Boule
         Public valeur As Integer
         Public classe As Char
         Public appelation As String
         Public tirage As Integer
     End Class
-
-
 
     Sub Main(args As String())
 
@@ -35,12 +32,13 @@ Module Program
 
             Do
                 Threading.Thread.Sleep(500)
+                Console.Clear()
                 TirerBoule()
                 For Each card In CardList
-                    card.stampLigne(bouleTiree.valeur)
+                    card.StampLigne(bouleTiree.valeur)
                     card.Valider()
                     If card.estGagnante = True Then
-                        gagnant = gagnant + 1
+                        gagnant += 1
                     End If
                 Next
                 MontrerCarte()
@@ -53,47 +51,20 @@ Module Program
                 If index = 0 And CardList(index).estGagnante = True Then
                     Console.WriteLine("Vous gagnez!")
                 ElseIf CardList(index).estGagnante = True Then
-                    Console.Write("la carte" & index + 1 & "est gagnante")
+                    Console.WriteLine("La carte " & index + 1 & " est gagnante.")
                 End If
 
             Next
             Console.WriteLine("Nous avons tirés " & compteBoule & " boules avant d'avoir un gagnant.")
 
 
-
-            Console.WriteLine("Voulez-vous rejouer? (O)ui ou (N)on?")
-            Do
-
-                valide = Char.TryParse(Console.ReadKey.KeyChar(), reponseUser) And reponseUser = "o" Or reponseUser = "O" Or reponseUser = "N" Or reponseUser = "n"
-            Loop Until valide = True
-            If reponseUser = "O" Or reponseUser = "o" Then
-                continuer = True
-                CardList.Clear()
-                boulier.AddRange(boulesUtilises)
-                gagnant = False
-                compteBoule = 0
-            Else
-                continuer = False
-            End If
+            Rejouer()
         Loop Until continuer = False
-
-        boulier.AddRange(boulesUtilises)
-        boulier.Sort(Function(x, y) x.valeur.CompareTo(y.valeur))
-
-        Console.WriteLine("Voici les statistiques des boules tirées au cours des parties:")
-        For Each boule As Boule In boulier
-            If boule.tirage > 0 Then
-                Console.WriteLine(boule.appelation & " : " & boule.tirage)
-            End If
-        Next
-
+        AfficherStats()
     End Sub
 
 
     Sub ChoisirParams()
-
-
-
         Do
 
             Console.WriteLine(Environment.NewLine + "A quel mode de bingo voulez vous jouer? " + Environment.NewLine + "1 pour ligne-colone-diagonale " + Environment.NewLine +
@@ -102,11 +73,11 @@ Module Program
         Loop While valide = False
         Select Case reponseUser
             Case "1"
-                mode = "ligneCol"
+                mode = "Ligne et Colonne"
             Case "2"
-                mode = "cartePleine"
+                mode = "Carte Pleine"
             Case "3"
-                mode = "quatreCoins"
+                mode = "Quatre Coins"
             Case Else
 
         End Select
@@ -114,9 +85,7 @@ Module Program
             Console.WriteLine(Environment.NewLine + "Combien de cartes de bingo voulez-vous? Choissisez entre 4 et 20")
             valide = Integer.TryParse(Console.ReadLine(), nbCards) And nbCards > 3 AndAlso nbCards < 21
         Loop While valide = False
-
-
-
+        Console.Clear()
     End Sub
 
 
@@ -127,13 +96,7 @@ Module Program
         Next
     End Sub
 
-
-
-
-
-
     Sub CreerBoulier()
-
         For index As Integer = 1 To 75
             Dim boule As New Boule
             boule.valeur = index
@@ -150,14 +113,9 @@ Module Program
                     boule.classe = "O"
             End Select
             boule.appelation = CStr(boule.classe & boule.valeur)
-
             boulier.Add(boule)
             'Console.WriteLine(boule.appelation)
-
-
         Next
-
-
     End Sub
 
     Public Sub Shuffle(boule As List(Of Boule))
@@ -176,25 +134,26 @@ Module Program
     Public Sub TirerBoule()
         Shuffle(boulier)
         bouleTiree = boulier(0)
-        bouleTiree.tirage = bouleTiree.tirage + 1
+        bouleTiree.tirage += 1
         boulesUtilises.Add(bouleTiree)
         boulier.Remove(bouleTiree)
-        compteBoule = compteBoule + 1
-        Console.Write("LA BOULE TIREE EST")
-        Console.WriteLine(CStr(bouleTiree.appelation).PadLeft(20))
+        compteBoule += 1
+        Console.Write(Environment.NewLine & "LA BOULE TIREE EST ------->")
+        Console.Write(CStr(bouleTiree.appelation).PadLeft(5))
+        Console.Write("Le mode de jeu est présentement :".PadLeft(40) & mode)
+
     End Sub
 
     Public Sub MontrerCarte()
         Dim cartePlayer As Card = CardList(0)
 
-
-        Console.WriteLine(" B  I  N  G  O")
+        Console.WriteLine(Environment.NewLine & " B  I  N  G  O".PadLeft(15))
         For x As Integer = 0 To 4
             For y As Integer = 0 To 4
                 If cartePlayer.quadrille(x, y).stamp = True Then
-                    ColorWrite("  " & CStr(cartePlayer.quadrille(x, y).valeur))
+                    ColorWrite(" " & String.Format("{0,2}", CStr(cartePlayer.quadrille(x, y).valeur)))
                 Else
-                    Console.Write("  " & CStr(cartePlayer.quadrille(x, y).valeur))
+                    Console.Write(" " & String.Format("{0,2}", CStr(cartePlayer.quadrille(x, y).valeur)))
                 End If
 
             Next
@@ -210,7 +169,39 @@ Module Program
     End Sub
 
 
+    Private Sub Rejouer()
+        Console.WriteLine("Voulez-vous rejouer? (O)ui ou (N)on?")
+        Do
 
+            valide = Char.TryParse(Console.ReadKey.KeyChar(), reponseUser) And reponseUser = "o" Or reponseUser = "O" Or reponseUser = "N" Or reponseUser = "n"
+        Loop Until valide = True
+        If reponseUser = "O" Or reponseUser = "o" Then
+            continuer = True
+            CardList.Clear()
+            boulier.AddRange(boulesUtilises)
+            gagnant = False
+            compteBoule = 0
+        Else
+            continuer = False
+        End If
+    End Sub
+
+    Private Sub AfficherStats()
+        Dim countPrint As Integer
+        boulier.AddRange(boulesUtilises)
+        boulier.Sort(Function(x, y) x.valeur.CompareTo(y.valeur))
+
+        Console.WriteLine(Environment.NewLine & "Voici les statistiques des boules tirées au cours des parties:")
+        For index As Integer = 0 To 74
+            If boulier(index).tirage > 0 Then
+                Console.Write(" |" & String.Format("{0,3}", CStr(boulier(index).appelation)) & " : " & String.Format("{0,2}", CStr(boulier(index).tirage)))
+                countPrint += 1
+                If countPrint Mod 5 = 0 Then
+                    Console.WriteLine("")
+                End If
+            End If
+        Next
+    End Sub
 
 End Module
 
