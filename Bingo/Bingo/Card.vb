@@ -3,9 +3,11 @@
 Public Class Card
 
     Public quadrille(4, 4) As carre
+    Public estGagnante As Boolean = False
     Public Structure carre
         Dim valeur As Integer
         Dim stamp As Boolean
+
     End Structure
 
 
@@ -134,14 +136,7 @@ Public Class Card
             Next
         Next
 
-        ''IMPRESSION STAMP 
-        'For x As Integer = 0 To 4
-        '    Console.WriteLine()
-        '    For y As Integer = 0 To 4
-        '        Console.Write(" " & quadrille(x, y).stamp)
 
-        '    Next
-        'Next
 
     End Sub
 
@@ -161,10 +156,8 @@ Public Class Card
                         End If
                         If count = 5 Then
                             Console.WriteLine("winner ligne")
-                            winner = True
+                            estGagnante = True
                         End If
-
-
                     Next
                 Next
 
@@ -179,16 +172,70 @@ Public Class Card
                         End If
                         If count = 5 Then
                             Console.WriteLine("winner col")
+                            estGagnante = True
+                        End If
 
-                            winner = True
+                    Next
+                Next
+
+                ''VERIFICATION Diagonale 
+
+                For x As Integer = 0 To 4
+                    Dim count As Integer = 0
+
+
+                    If quadrille(x, x).stamp = True Then
+                        count = count + 1
+                    End If
+                    If count = 5 Then
+                        Console.WriteLine("winner diag")
+                        estGagnante = True
+                    End If
+
+                Next
+
+                For x As Integer = 0 To 4
+                    Dim count As Integer = 0
+
+                    For y As Integer = 0 To 4
+                        If x + y = 4 AndAlso quadrille(y, x).stamp = True Then
+                            count = count + 1
+                        End If
+                        If count = 5 Then
+                            Console.WriteLine("winner Diag")
+                            estGagnante = True
                         End If
 
                     Next
                 Next
 
 
+
+
+
+
+
             Case "cartePleine"
+                Dim count As Integer = 0
+                For x As Integer = 0 To 4
+                    For y As Integer = 0 To 4
+                        If quadrille(x, y).stamp = True Then
+                            count = count + 1
+                        End If
+                        If count > 24 Then
+                            Console.WriteLine("full")
+
+                            estGagnante = True
+                        End If
+
+                    Next
+                Next
             Case "quatreCoins"
+
+                If quadrille(0, 0).stamp = True AndAlso quadrille(0, 4).stamp = True AndAlso quadrille(4, 0).stamp = True AndAlso quadrille(4, 4).stamp Then
+                    Console.WriteLine("4coins")
+                    estGagnante = True
+                End If
 
         End Select
     End Sub

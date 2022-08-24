@@ -6,40 +6,101 @@ Module Program
     Dim CardList As New List(Of Card)
     Public mode As String
     Dim boulier As New List(Of Boule)
+    Dim boulesUtilises As New List(Of Boule)
     Dim bouleTiree As Boule
-    Public winner = False
+    Dim gagnant As Integer = 0
+    Dim compteBoule As Integer = 0
+    Dim continuer As Boolean = False
+    Dim valide As Boolean
+    Dim reponseUser As Char
+    Class Boule
+        Public valeur As Integer
+        Public classe As Char
+        Public appelation As String
+        Public tirage As Integer
+    End Class
+
+
 
     Sub Main(args As String())
-        Console.WriteLine("%cThis is a %cConsole.log", "background:black ; color: white", "color: red; font-size:25px")
-        CreerBoulier()
-        Welcome()
-        CreateCards(nbCards)
-        MontrerCarte()
 
+        Console.WriteLine("Bienvenu au bingo magique visual basic.")
         Do
-            TirerBoule()
-            CardList(0).stampLigne(bouleTiree.valeur)
+            CreerBoulier()
+            ChoisirParams()
+            CreateCards(nbCards)
+            Console.WriteLine("Voici votre carte. Appuyez sur une touche pour débuter le tirage")
             MontrerCarte()
-            CardList(0).Valider()
-        Loop Until winner = True
+            Console.ReadKey()
+
+            Do
+                Threading.Thread.Sleep(500)
+                TirerBoule()
+                For Each card In CardList
+                    card.stampLigne(bouleTiree.valeur)
+                    card.Valider()
+                    If card.estGagnante = True Then
+                        gagnant = gagnant + 1
+                    End If
+                Next
+                MontrerCarte()
+
+
+            Loop Until gagnant > 1
+
+
+            For index As Integer = 0 To nbCards - 1
+                If index = 0 And CardList(index).estGagnante = True Then
+                    Console.WriteLine("Vous gagnez!")
+                ElseIf CardList(index).estGagnante = True Then
+                    Console.Write("la carte" & index + 1 & "est gagnante")
+                End If
+
+            Next
+            Console.WriteLine("Nous avons tirés " & compteBoule & " boules avant d'avoir un gagnant.")
 
 
 
+            Console.WriteLine("Voulez-vous rejouer? (O)ui ou (N)on?")
+            Do
+
+                valide = Char.TryParse(Console.ReadKey.KeyChar(), reponseUser) And reponseUser = "o" Or reponseUser = "O" Or reponseUser = "N" Or reponseUser = "n"
+            Loop Until valide = True
+            If reponseUser = "O" Or reponseUser = "o" Then
+                continuer = True
+                CardList.Clear()
+                boulier.AddRange(boulesUtilises)
+                gagnant = False
+                compteBoule = 0
+            Else
+                continuer = False
+            End If
+        Loop Until continuer = False
+
+        boulier.AddRange(boulesUtilises)
+        boulier.Sort(Function(x, y) x.valeur.CompareTo(y.valeur))
+
+        Console.WriteLine("Voici les statistiques des boules tirées au cours des parties:")
+        For Each boule As Boule In boulier
+            If boule.tirage > 0 Then
+                Console.WriteLine(boule.appelation & " : " & boule.tirage)
+            End If
+        Next
 
     End Sub
 
 
-    Sub Welcome()
-        Dim valide As Boolean
-        Dim rep As Char
-        Console.WriteLine("Bienvenu au bingo magique visual basic.")
+    Sub ChoisirParams()
+
+
+
         Do
 
             Console.WriteLine(Environment.NewLine + "A quel mode de bingo voulez vous jouer? " + Environment.NewLine + "1 pour ligne-colone-diagonale " + Environment.NewLine +
                 "2 pour carte pleine" + Environment.NewLine + "3 pour quatre coins")
-            valide = Char.TryParse(Console.ReadKey.KeyChar(), rep) And rep = "1" Or rep = "2" Or rep = "3"
+            valide = Char.TryParse(Console.ReadKey.KeyChar(), reponseUser) And reponseUser = "1" Or reponseUser = "2" Or reponseUser = "3"
         Loop While valide = False
-        Select Case rep
+        Select Case reponseUser
             Case "1"
                 mode = "ligneCol"
             Case "2"
@@ -53,6 +114,9 @@ Module Program
             Console.WriteLine(Environment.NewLine + "Combien de cartes de bingo voulez-vous? Choissisez entre 4 et 20")
             valide = Integer.TryParse(Console.ReadLine(), nbCards) And nbCards > 3 AndAlso nbCards < 21
         Loop While valide = False
+
+
+
     End Sub
 
 
@@ -66,11 +130,6 @@ Module Program
 
 
 
-    Class Boule
-        Public valeur As Integer
-        Public classe As Char
-        Public appelation As String
-    End Class
 
 
     Sub CreerBoulier()
@@ -117,23 +176,25 @@ Module Program
     Public Sub TirerBoule()
         Shuffle(boulier)
         bouleTiree = boulier(0)
-        boulier.Remove(boulier(0))
-        Console.WriteLine("LA BOULE TIREE EST")
-        Console.WriteLine(bouleTiree.appelation)
+        bouleTiree.tirage = bouleTiree.tirage + 1
+        boulesUtilises.Add(bouleTiree)
+        boulier.Remove(bouleTiree)
+        compteBoule = compteBoule + 1
+        Console.Write("LA BOULE TIREE EST")
+        Console.WriteLine(CStr(bouleTiree.appelation).PadLeft(20))
     End Sub
 
     Public Sub MontrerCarte()
         Dim cartePlayer As Card = CardList(0)
-        Console.WriteLine("Voici votre carte. Appuyez sur une touche pour débuter le tirage")
 
 
         Console.WriteLine(" B  I  N  G  O")
         For x As Integer = 0 To 4
             For y As Integer = 0 To 4
                 If cartePlayer.quadrille(x, y).stamp = True Then
-                    ColorWrite(" " & CStr(cartePlayer.quadrille(x, y).valeur))
+                    ColorWrite("  " & CStr(cartePlayer.quadrille(x, y).valeur))
                 Else
-                    Console.Write(" " & CStr(cartePlayer.quadrille(x, y).valeur))
+                    Console.Write("  " & CStr(cartePlayer.quadrille(x, y).valeur))
                 End If
 
             Next
@@ -142,10 +203,14 @@ Module Program
     End Sub
 
     Public Sub ColorWrite(s As String)
-        Console.BackgroundColor = ConsoleColor.Blue
+        Console.BackgroundColor = Console.BackgroundColor
+        Console.ForegroundColor = ConsoleColor.DarkGreen
         Console.Write(s)
         Console.ResetColor()
     End Sub
+
+
+
 
 End Module
 
